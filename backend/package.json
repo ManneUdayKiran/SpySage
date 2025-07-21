@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "createNotionDb.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"node server.js\" \"node scheduler.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@slack/web-api": "^7.9.3",
+    "express": "^5.1.0",
+    "groq": "^4.0.1",
+    "mongodb": "^6.17.0",
+    "puppeteer": "^24.14.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
