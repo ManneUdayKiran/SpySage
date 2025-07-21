@@ -18,7 +18,7 @@ async function scheduledJob() {
 
 connectDB().then(() => {
   // Run every day at 8am server time
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("0 8 * * *", async () => {
     try {
       await sendAdminNotification(
         "Scheduler: Scraper Job Started",
@@ -53,7 +53,7 @@ connectDB().then(() => {
 });
 
 // Weekly digest job: every Monday at 9am
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 9 * * 1", async () => {
   try {
     await sendAdminNotification(
       "Scheduler: Weekly Digest Started",
