@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+
 
 // Middleware
 app.use(express.json());
@@ -24,7 +23,7 @@ app.use('/api/auth', authRouter);
 const healthRouter = require('./routes/health');
 app.use('/api/health', healthRouter);
 const apiKeysRouter = require('./routes/apiKeys');
-app.use('/api/api-keys', apiKeysRouter););
+app.use('/api/api-keys', apiKeysRouter);
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
