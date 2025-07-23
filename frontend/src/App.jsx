@@ -42,6 +42,8 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import TimelinePage from "./pages/Timeline";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Title } = Typography;
 
@@ -381,6 +383,7 @@ function App() {
         <source src="/bg_vid.mov" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       <AuthProvider>
         <Router>
           <AppLayout />

@@ -60,6 +60,7 @@ ChartJS.register(
 );
 import { saveAs } from "file-saver";
 import "../App.css";
+import { toast } from 'react-toastify';
 function Dashboard() {
   const navigate = useNavigate();
   const [competitorCount, setCompetitorCount] = useState(0);
@@ -86,6 +87,7 @@ function Dashboard() {
   const [changes, setChanges] = useState([]);
   const [trendingCompetitors, setTrendingCompetitors] = useState([]);
   const [serviceAvailability, setServiceAvailability] = useState({});
+  const [isManualScraping, setIsManualScraping] = useState(false);
 
   const fetchNotificationSettings = async () => {
     try {
@@ -171,7 +173,7 @@ function Dashboard() {
           Object.entries(counts).map(([name, value]) => ({ name, value }))
         );
       } catch (err) {
-        message.error("Failed to load dashboard stats");
+        toast.error("Failed to load dashboard stats");
       } finally {
         setLoading(false);
       }
@@ -189,6 +191,73 @@ function Dashboard() {
       .then((data) => setSystemHealth(data))
       .catch(() => {});
   }, []);
+
+  // Poll manual scrape status on mount
+  useEffect(() => {
+    const fetchManualScrapeStatus = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/manual-scrape/status");
+        const data = await res.json();
+        setIsManualScraping(!!data.running);
+      } catch (err) {
+        setIsManualScraping(false);
+      }
+    };
+    fetchManualScrapeStatus();
+    const interval = setInterval(fetchManualScrapeStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleStartManualScrape = async () => {
+    setManualScrapeLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/manual-scrape/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsManualScraping(true);
+        toast.success(
+          "Started manual scrape. \nScraper job: every day at 8am .\nBuzz update job: every hour. \nWeekly digest job: every Monday at 9am",
+          { style: { whiteSpace: 'pre-line' } }
+        );
+      } else {
+        toast.error(data.message || "Failed to start manual scraper");
+      }
+    } catch (err) {
+      toast.error("Failed to start manual scraper");
+    } finally {
+      setManualScrapeLoading(false);
+    }
+  };
+
+  const handleStopManualScrape = async () => {
+    setManualScrapeLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/manual-scrape/stop", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsManualScraping(false);
+        toast.success("Manual scraper stopped.");
+      } else {
+        toast.error(data.message || "Failed to stop manual scraper");
+      }
+    } catch (err) {
+      toast.error("Failed to stop manual scraper");
+    } finally {
+      setManualScrapeLoading(false);
+    }
+  };
 
   // Quick Action Handlers
   const handleAddCompetitor = () => setQuickActionModal(true);
@@ -210,7 +279,7 @@ function Dashboard() {
       // Clean up and notify
       setQuickActionModal(false);
       addForm.resetFields();
-      message.success("Competitor added successfully!");
+      toast.success("Competitor added successfully!");
 
       // Refresh data
       const competitors = await getCompetitors();
@@ -218,37 +287,12 @@ function Dashboard() {
       setCompetitorCount(competitors.length);
     } catch (err) {
       console.error("Add competitor error:", err);
-      message.error(err.message || "Failed to add competitor");
+      toast.error(err.message || "Failed to add competitor");
     }
   };
   const handleAddCompetitorCancel = () => {
     setQuickActionModal(false);
     addForm.resetFields();
-  };
-  const handleManualScrape = async () => {
-    setManualScrapeLoading(true);
-    try {
-      const res = await fetch(
-        "http://localhost:5000/api/health/manual-scrape",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      const data = await res.json();
-      if (data.success) {
-        message.success("Manual scrape triggered!");
-      } else {
-        message.error(data.message || "Failed to trigger manual scrape");
-      }
-    } catch (err) {
-      message.error("Failed to trigger manual scrape");
-    } finally {
-      setManualScrapeLoading(false);
-    }
   };
   const handleExportCSV = () => {
     // Export all changes as CSV
@@ -453,16 +497,31 @@ function Dashboard() {
             </Button>
           </Col>
           <Col xs={12} sm={6} md={3}>
-            <Button
-              icon={<ReloadOutlined />}
-              block
-              loading={manualScrapeLoading}
-              onClick={handleManualScrape}
-              size="small"
-              style={{ fontSize: "12px" }}
-            >
-              Manual Scrape
-            </Button>
+            {isManualScraping ? (
+              <Button
+                icon={<ReloadOutlined />}
+                block
+                danger
+                loading={manualScrapeLoading}
+                onClick={handleStopManualScrape}
+                size="small"
+                style={{ fontSize: "12px" }}
+              >
+                Stop Manual Scrape
+              </Button>
+            ) : (
+              <Button
+                icon={<ReloadOutlined />}
+                block
+                type="primary"
+                loading={manualScrapeLoading}
+                onClick={handleStartManualScrape}
+                size="small"
+                style={{ fontSize: "12px" }}
+              >
+                Start Manual Scrape
+              </Button>
+            )}
           </Col>
           <Col xs={12} sm={6} md={3}>
             <Button
@@ -947,10 +1006,10 @@ function Dashboard() {
                     body: JSON.stringify(values),
                   }
                 );
-                message.success("Notification settings updated!");
+                toast.success("Notification settings updated!");
                 fetchNotificationSettings();
               } catch (err) {
-                message.error("Failed to update notification settings");
+                toast.error("Failed to update notification settings");
                 console.error(err);
               }
             }}

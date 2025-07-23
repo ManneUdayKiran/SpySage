@@ -5,7 +5,11 @@
   "main": "createNotionDb.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"node server.js\" \"node scheduler.js\""
+    "start": "concurrently \"node server.js\" \"node scheduler.js\"",
+    "demo:create": "node createDemoData.js",
+    "demo:simulate": "node demoSimulation.js",
+    "demo:live": "node runLiveDemo.js",
+    "demo:full": "npm run demo:create && npm run demo:live"
   },
   "keywords": [],
   "author": "",

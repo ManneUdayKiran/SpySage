@@ -7,8 +7,15 @@ const { sendAdminNotification } = require("./services/email");
 const { updateAllCompetitorBuzz } = require("./services/scraperRunner");
 const Change = require("./models/Change");
 
-async function connectDB() {
-  await mongoose.connect(process.env.MONGODB_URI);
+let scraperTask = null;
+let buzzTask = null;
+let weeklyDigestTask = null;
+let isSchedulerRunning = false;
+
+async function connectDBIfNeeded() {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(process.env.MONGODB_URI);
+  }
 }
 
 async function scheduledJob() {
@@ -16,62 +23,85 @@ async function scheduledJob() {
   await runAllScrapers();
 }
 
-connectDB().then(() => {
-  // Run every day at 8am server time
-  cron.schedule("0 8 * * *", async () => {
-    try {
-      await sendAdminNotification(
-        "Scheduler: Scraper Job Started",
-        `Scraper job started at ${new Date().toISOString()}`
-      );
-      await scheduledJob();
-      await sendAdminNotification(
-        "Scheduler: Scraper Job Completed",
-        `Scraper job completed at ${new Date().toISOString()}`
-      );
-    } catch (err) {
-      await sendAdminNotification(
-        "Scheduler: Scraper Job Error",
-        `Error: ${err.message || err}`
-      );
-    }
+function startScheduler() {
+  if (isSchedulerRunning) return false;
+  connectDBIfNeeded().then(() => {
+    // Scraper job: every day at 8am
+    scraperTask = cron.schedule("0 8 * * *", async () => {
+      try {
+        await sendAdminNotification(
+          "Scheduler: Scraper Job Started",
+          `Scraper job started at ${new Date().toISOString()}`
+        );
+        await scheduledJob();
+        await sendAdminNotification(
+          "Scheduler: Scraper Job Completed",
+          `Scraper job completed at ${new Date().toISOString()}`
+        );
+      } catch (err) {
+        await sendAdminNotification(
+          "Scheduler: Scraper Job Error",
+          `Error: ${err.message || err}`
+        );
+      }
+    });
+    // Buzz update job: every hour
+    buzzTask = cron.schedule("0 * * * *", async () => {
+      try {
+        console.log(
+          `[${new Date().toISOString()}] Running scheduled buzz update job...`
+        );
+        await updateAllCompetitorBuzz();
+        console.log("Buzz update completed.");
+      } catch (err) {
+        console.error("Buzz update job error:", err.message || err);
+      }
+    });
+    // Weekly digest job: every Monday at 9am
+    weeklyDigestTask = cron.schedule("0 9 * * 1", async () => {
+      try {
+        await sendAdminNotification(
+          "Scheduler: Weekly Digest Started",
+          `Weekly digest started at ${new Date().toISOString()}`
+        );
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const changes = await Change.find({
+          detectedAt: { $gte: oneWeekAgo },
+        }).populate("competitor");
+        await sendWeeklyDigest(changes);
+        await sendAdminNotification(
+          "Scheduler: Weekly Digest Completed",
+          `Weekly digest completed at ${new Date().toISOString()}`
+        );
+      } catch (err) {
+        await sendAdminNotification(
+          "Scheduler: Weekly Digest Error",
+          `Error: ${err.message || err}`
+        );
+      }
+    });
+    isSchedulerRunning = true;
+    console.log("Scheduler started. Scraper will run every day at 8am.");
   });
-  console.log("Scheduler started. Scraper will run every day at 8am.");
+  return true;
+}
 
-  // Buzz update job: run every hour
-  cron.schedule("0 * * * *", async () => {
-    try {
-      console.log(
-        `[${new Date().toISOString()}] Running scheduled buzz update job...`
-      );
-      await updateAllCompetitorBuzz();
-      console.log("Buzz update completed.");
-    } catch (err) {
-      console.error("Buzz update job error:", err.message || err);
-    }
-  });
-});
+function stopScheduler() {
+  if (!isSchedulerRunning) return false;
+  if (scraperTask) scraperTask.stop();
+  if (buzzTask) buzzTask.stop();
+  if (weeklyDigestTask) weeklyDigestTask.stop();
+  isSchedulerRunning = false;
+  console.log("Scheduler stopped.");
+  return true;
+}
 
-// Weekly digest job: every Monday at 9am
-cron.schedule("0 9 * * 1", async () => {
-  try {
-    await sendAdminNotification(
-      "Scheduler: Weekly Digest Started",
-      `Weekly digest started at ${new Date().toISOString()}`
-    );
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const changes = await Change.find({
-      detectedAt: { $gte: oneWeekAgo },
-    }).populate("competitor");
-    await sendWeeklyDigest(changes);
-    await sendAdminNotification(
-      "Scheduler: Weekly Digest Completed",
-      `Weekly digest completed at ${new Date().toISOString()}`
-    );
-  } catch (err) {
-    await sendAdminNotification(
-      "Scheduler: Weekly Digest Error",
-      `Error: ${err.message || err}`
-    );
-  }
-});
+function isSchedulerActive() {
+  return isSchedulerRunning;
+}
+
+module.exports = {
+  startScheduler,
+  stopScheduler,
+  isSchedulerActive,
+};

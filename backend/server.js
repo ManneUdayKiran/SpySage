@@ -25,6 +25,8 @@ const healthRouter = require("./routes/health");
 app.use("/api/health", healthRouter);
 const apiKeysRouter = require("./routes/apiKeys");
 app.use("/api/api-keys", apiKeysRouter);
+const manualScrapeRouter = require("./routes/manualScrape");
+app.use("/api/manual-scrape", manualScrapeRouter);
 
 // Health check route
 app.get("/", (req, res) => {
