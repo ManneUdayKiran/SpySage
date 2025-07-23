@@ -44,7 +44,7 @@ function exportToCSV(changes) {
 function getScreenshotUrl(screenshotPath) {
   if (!screenshotPath) return '';
   const filename = screenshotPath.split(/[\\/]/).pop();
-  return `http://localhost:5000/screenshots/${filename}`;
+  return `https://spysage-backend.onrender.com/screenshots/${filename}`;
 }
 
 const categoryColors = {

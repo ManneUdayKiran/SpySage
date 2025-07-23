@@ -95,7 +95,7 @@ function Dashboard() {
 
       // Using absolute URL with the correct port
       const res = await fetch(
-        "http://localhost:5000/api/user/notification-settings",
+        "https://spysage-backend.onrender.com/api/user/notification-settings",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -120,7 +120,7 @@ function Dashboard() {
 
       // Using absolute URL with the correct port
       const res = await fetch(
-        "http://localhost:5000/api/api-keys/availability",
+        "https://spysage-backend.onrender.com/api/api-keys/availability",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -186,7 +186,7 @@ function Dashboard() {
       .then(setTrendingCompetitors)
       .catch(() => {});
     // Fetch system health from backend
-    fetch("http://localhost:5000/api/health")
+    fetch("https://spysage-backend.onrender.com/api/health")
       .then((res) => res.json())
       .then((data) => setSystemHealth(data))
       .catch(() => {});
@@ -196,7 +196,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchManualScrapeStatus = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/manual-scrape/status");
+        const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/status");
         const data = await res.json();
         setIsManualScraping(!!data.running);
       } catch (err) {
@@ -211,7 +211,7 @@ function Dashboard() {
   const handleStartManualScrape = async () => {
     setManualScrapeLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/manual-scrape/start", {
+      const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -238,7 +238,7 @@ function Dashboard() {
   const handleStopManualScrape = async () => {
     setManualScrapeLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/manual-scrape/stop", {
+      const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/stop", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

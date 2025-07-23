@@ -79,7 +79,7 @@ function NotificationSettings() {
 
       try {
         const res = await fetch(
-          "http://localhost:5000/api/user/notification-settings",
+          "https://spysage-backend.onrender.com/api/user/notification-settings",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -112,7 +112,7 @@ function NotificationSettings() {
 
       // Using absolute URL with the correct port
       const res = await fetch(
-        "http://localhost:5000/api/api-keys/availability",
+        "https://spysage-backend.onrender.com/api/api-keys/availability",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -182,7 +182,7 @@ function NotificationSettings() {
 
       try {
         const res = await fetch(
-          "http://localhost:5000/api/user/notification-settings",
+          "https://spysage-backend.onrender.com/api/user/notification-settings",
           {
             method: "POST",
             headers: {

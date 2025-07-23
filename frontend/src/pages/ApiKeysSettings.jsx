@@ -48,7 +48,7 @@ function ApiKeysSettings() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/api-keys", {
+      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,7 +90,7 @@ function ApiKeysSettings() {
       console.log("Saving keys:", Object.keys(keysToSave)); // Debug log
 
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/api-keys", {
+      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -142,7 +142,7 @@ function ApiKeysSettings() {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/api-keys", {
+      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
