@@ -48,11 +48,14 @@ function ApiKeysSettings() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://spysage-backend.onrender.com/api/api-keys",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
@@ -62,8 +65,14 @@ function ApiKeysSettings() {
       console.log("Fetched API keys:", data); // Debug log
       setApiKeys(data);
 
+      // Convert null values to empty strings for the form
+      const formData = {};
+      Object.keys(data).forEach((key) => {
+        formData[key] = data[key] || "";
+      });
+
       // The backend already returns masked values, so use them directly
-      form.setFieldsValue(data);
+      form.setFieldsValue(formData);
     } catch (err) {
       console.error("Failed to load API keys:", err);
       message.error("Failed to load API keys");
@@ -75,29 +84,38 @@ function ApiKeysSettings() {
   const handleSave = async (values) => {
     setSaving(true);
     try {
+      console.log("Raw form values:", values); // Debug log
+
       // Filter out empty values and masked values (backend sends masked values starting with *)
       const keysToSave = {};
       Object.keys(values).forEach((key) => {
+        console.log(`Processing ${key}: "${values[key]}"`); // Debug each field
         if (
           values[key] &&
+          typeof values[key] === "string" &&
+          values[key].trim() !== "" &&
           !values[key].startsWith("*") &&
           !values[key].startsWith("•")
         ) {
-          keysToSave[key] = values[key];
+          keysToSave[key] = values[key].trim();
         }
       });
 
       console.log("Saving keys:", Object.keys(keysToSave)); // Debug log
+      console.log("Keys to save:", keysToSave); // Debug log
 
       const token = localStorage.getItem("token");
-      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(keysToSave),
-      });
+      const response = await fetch(
+        "https://spysage-backend.onrender.com/api/api-keys",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(keysToSave),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
@@ -142,12 +160,15 @@ function ApiKeysSettings() {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://spysage-backend.onrender.com/api/api-keys", {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://spysage-backend.onrender.com/api/api-keys",
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
