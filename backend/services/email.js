@@ -16,12 +16,25 @@ const transporter = nodemailer.createTransport({
 
 async function sendWeeklyDigest(changes, userEmail) {
   if (!userEmail) {
-    console.error("No user email provided for weekly digest");
+    console.error("No user email provided for digest");
     return;
   }
 
-  const subject = "Weekly Competitor Change Digest";
-  let text = "Here are the competitor changes from the past week:\n\n";
+  // Determine if this is hourly or weekly based on changes timeframe
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const recentChanges = changes.filter(
+    (c) => new Date(c.detectedAt) >= oneHourAgo
+  );
+
+  const isHourlyDigest = recentChanges.length > 0;
+  const subject = isHourlyDigest
+    ? "Hourly Competitor Updates"
+    : "Weekly Competitor Change Digest";
+
+  let text = `Here are the competitor changes${
+    isHourlyDigest ? " from the past hour" : " from the past week"
+  }:\n\n`;
   if (changes.length === 0) {
     text += "No changes detected.";
   } else {
@@ -40,7 +53,11 @@ async function sendWeeklyDigest(changes, userEmail) {
       subject,
       text,
     });
-    console.log(`Weekly digest email sent to ${userEmail}`);
+    console.log(
+      `${
+        isHourlyDigest ? "Hourly" : "Weekly"
+      } digest email sent to ${userEmail}`
+    );
   } catch (err) {
     console.error("Email sending error:", err.message);
   }

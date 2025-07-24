@@ -113,31 +113,16 @@ function Dashboard() {
     }
   };
 
-  const fetchServiceAvailability = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      // Using absolute URL with the correct port
-      const res = await fetch(
-        "https://spysage-backend.onrender.com/api/api-keys/availability",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`API responded with status ${res.status}`);
-      }
-
-      const data = await res.json();
-      setServiceAvailability(data.services || {});
-    } catch (err) {
-      console.error("Failed to fetch service availability:", err);
-      // Set default empty object
-      setServiceAvailability({});
-    }
+  const setDefaultServiceAvailability = () => {
+    // Since we're using centrally managed API keys, assume all services are available
+    setServiceAvailability({
+      groq: true,
+      notion: true,
+      slack: true,
+      email: true,
+      twitter: true,
+      openRouter: true,
+    });
   };
   useEffect(() => {
     async function fetchStats() {
@@ -179,7 +164,7 @@ function Dashboard() {
     }
     fetchStats();
     fetchNotificationSettings();
-    fetchServiceAvailability();
+    setDefaultServiceAvailability();
     // Fetch trending competitors
     getTrendingCompetitors()
       .then(setTrendingCompetitors)
@@ -226,7 +211,7 @@ function Dashboard() {
       if (data.success) {
         setIsManualScraping(true);
         toast.success(
-          "Started manual scrape. \nScraper job: every day at 8am .\nBuzz update job: every hour. \nWeekly digest job: every Monday at 9am",
+          "Started manual scrape. \nScraper job: every day at 8am .\nBuzz update job: every hour. \nHourly email digest: every hour",
           { style: { whiteSpace: "pre-line" } }
         );
       } else {
@@ -982,7 +967,7 @@ function Dashboard() {
 
               try {
                 await fetch(
-                  "http://localhost:5000/api/user/notification-settings",
+                  "https://spysage-backend.onrender.com/api/user/notification-settings",
                   {
                     method: "POST",
                     headers: {

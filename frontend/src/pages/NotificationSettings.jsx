@@ -69,7 +69,7 @@ function NotificationSettings() {
 
   useEffect(() => {
     fetchNotificationSettings();
-    fetchServiceAvailability();
+    setDefaultServiceAvailability();
   }, []);
 
   const fetchNotificationSettings = async () => {
@@ -106,41 +106,13 @@ function NotificationSettings() {
     }
   };
 
-  const fetchServiceAvailability = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      // Using absolute URL with the correct port
-      const res = await fetch(
-        "https://spysage-backend.onrender.com/api/api-keys/availability",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`API responded with status ${res.status}`);
-      }
-
-      const data = await res.json();
-
-      // Update service availability based on API keys
-      setServiceAvailability({
-        slack: data.services?.slack || false,
-        notion: data.services?.notion || false,
-        email: data.services?.email || false,
-      });
-    } catch (err) {
-      console.error("Failed to fetch service availability:", err);
-      // Set all services to unavailable on error
-      setServiceAvailability({
-        slack: false,
-        notion: false,
-        email: false,
-      });
-    }
+  const setDefaultServiceAvailability = () => {
+    // Since we're using centrally managed API keys, assume all services are available
+    setServiceAvailability({
+      slack: true,
+      notion: true,
+      email: true,
+    });
   };
 
   const handleChannelChange = (values) => {

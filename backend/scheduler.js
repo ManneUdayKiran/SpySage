@@ -11,7 +11,7 @@ const Competitor = require("./models/Competitor");
 
 let scraperTask = null;
 let buzzTask = null;
-let weeklyDigestTask = null;
+let hourlyDigestTask = null;
 let isSchedulerRunning = false;
 
 async function connectDBIfNeeded() {
@@ -59,47 +59,53 @@ function startScheduler() {
         console.error("Buzz update job error:", err.message || err);
       }
     });
-    // Weekly digest job: every Monday at 9am
-    weeklyDigestTask = cron.schedule("0 9 * * 1", async () => {
+
+    // Hourly email digest job: every hour
+    hourlyDigestTask = cron.schedule("0 * * * *", async () => {
       try {
         await sendAdminNotification(
-          "Scheduler: Weekly Digest Started",
-          `Weekly digest started at ${new Date().toISOString()}`
+          "Scheduler: Hourly Digest Started",
+          `Hourly digest started at ${new Date().toISOString()}`
         );
 
-        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
         // Get all users
         const users = await User.find({});
 
         for (const user of users) {
-          // Get changes for this user's competitors
+          // Get changes for this user's competitors in the last hour
           const userCompetitors = await Competitor.find({ userId: user._id });
           const competitorIds = userCompetitors.map((c) => c._id);
 
           const changes = await Change.find({
             competitorId: { $in: competitorIds },
-            detectedAt: { $gte: oneWeekAgo },
+            detectedAt: { $gte: oneHourAgo },
           }).populate("competitor");
 
           if (changes.length > 0) {
             await sendWeeklyDigest(changes, user.email);
+            console.log(
+              `Sent hourly digest to ${user.email} with ${changes.length} changes`
+            );
           }
         }
 
         await sendAdminNotification(
-          "Scheduler: Weekly Digest Completed",
-          `Weekly digest completed at ${new Date().toISOString()}`
+          "Scheduler: Hourly Digest Completed",
+          `Hourly digest completed at ${new Date().toISOString()}`
         );
       } catch (err) {
         await sendAdminNotification(
-          "Scheduler: Weekly Digest Error",
+          "Scheduler: Hourly Digest Error",
           `Error: ${err.message || err}`
         );
       }
     });
     isSchedulerRunning = true;
-    console.log("Scheduler started. Scraper will run every day at 8am.");
+    console.log(
+      "Scheduler started. Scraper will run every day at 8am, buzz updates every hour, and hourly email digests."
+    );
   });
   return true;
 }
@@ -108,7 +114,7 @@ function stopScheduler() {
   if (!isSchedulerRunning) return false;
   if (scraperTask) scraperTask.stop();
   if (buzzTask) buzzTask.stop();
-  if (weeklyDigestTask) weeklyDigestTask.stop();
+  if (hourlyDigestTask) hourlyDigestTask.stop();
   isSchedulerRunning = false;
   console.log("Scheduler stopped.");
   return true;
