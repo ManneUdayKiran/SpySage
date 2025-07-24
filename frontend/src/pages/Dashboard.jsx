@@ -28,7 +28,6 @@ import {
   DatabaseOutlined,
   CloudOutlined,
   ClockCircleOutlined as ClockIcon,
-  KeyOutlined,
 } from "@ant-design/icons";
 import {
   getCompetitors,
@@ -60,7 +59,7 @@ ChartJS.register(
 );
 import { saveAs } from "file-saver";
 import "../App.css";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 function Dashboard() {
   const navigate = useNavigate();
   const [competitorCount, setCompetitorCount] = useState(0);
@@ -196,7 +195,9 @@ function Dashboard() {
   useEffect(() => {
     const fetchManualScrapeStatus = async () => {
       try {
-        const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/status");
+        const res = await fetch(
+          "https://spysage-backend.onrender.com/api/manual-scrape/status"
+        );
         const data = await res.json();
         setIsManualScraping(!!data.running);
       } catch (err) {
@@ -211,19 +212,22 @@ function Dashboard() {
   const handleStartManualScrape = async () => {
     setManualScrapeLoading(true);
     try {
-      const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await fetch(
+        "https://spysage-backend.onrender.com/api/manual-scrape/start",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       const data = await res.json();
       if (data.success) {
         setIsManualScraping(true);
         toast.success(
           "Started manual scrape. \nScraper job: every day at 8am .\nBuzz update job: every hour. \nWeekly digest job: every Monday at 9am",
-          { style: { whiteSpace: 'pre-line' } }
+          { style: { whiteSpace: "pre-line" } }
         );
       } else {
         toast.error(data.message || "Failed to start manual scraper");
@@ -238,13 +242,16 @@ function Dashboard() {
   const handleStopManualScrape = async () => {
     setManualScrapeLoading(true);
     try {
-      const res = await fetch("https://spysage-backend.onrender.com/api/manual-scrape/stop", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await fetch(
+        "https://spysage-backend.onrender.com/api/manual-scrape/stop",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       const data = await res.json();
       if (data.success) {
         setIsManualScraping(false);
@@ -532,18 +539,6 @@ function Dashboard() {
               style={{ fontSize: "12px" }}
             >
               Export Changes
-            </Button>
-          </Col>
-          <Col xs={12} sm={6} md={3}>
-            <Button
-              icon={<KeyOutlined />}
-              block
-              onClick={() => navigate("/api-keys")}
-              size="small"
-              type="default"
-              style={{ fontSize: "12px" }}
-            >
-              API Keys
             </Button>
           </Col>
         </Row>
@@ -872,15 +867,6 @@ function Dashboard() {
               </div>
             </Col>
           </Row>
-          <div style={{ textAlign: "center", marginTop: 16 }}>
-            <Button
-              type="link"
-              onClick={() => navigate("/api-keys")}
-              style={{ color: "white", textDecoration: "underline" }}
-            >
-              Configure API Keys →
-            </Button>
-          </div>
         </Card>
 
         <Modal

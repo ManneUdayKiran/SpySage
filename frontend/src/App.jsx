@@ -30,20 +30,18 @@ import {
   SettingOutlined,
   LogoutOutlined,
   EditOutlined,
-  KeyOutlined,
 } from "@ant-design/icons";
 import Dashboard from "./pages/Dashboard";
 import Competitors from "./pages/Competitors";
 import Changes from "./pages/Changes";
 import NotificationSettings from "./pages/NotificationSettings";
-import ApiKeysSettings from "./pages/ApiKeysSettings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import TimelinePage from "./pages/Timeline";
 import { AuthProvider, useAuth } from "./AuthContext";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const { Title } = Typography;
 
@@ -128,7 +126,6 @@ function AppLayout() {
     { key: "/competitors", icon: <TeamOutlined />, label: "Competitors" },
     { key: "/changes", icon: <FileTextOutlined />, label: "Changes" },
     { key: "/timeline", icon: <FileTextOutlined />, label: "Timeline" },
-    { key: "/api-keys", icon: <KeyOutlined />, label: "API Keys" },
     {
       key: "/settings",
       icon: <SettingOutlined />,
@@ -298,14 +295,6 @@ function AppLayout() {
               }
             />
             <Route
-              path="/api-keys"
-              element={
-                <PrivateRoute>
-                  <ApiKeysSettings />
-                </PrivateRoute>
-              }
-            />
-            <Route
               path="/settings"
               element={
                 <PrivateRoute>
@@ -383,7 +372,16 @@ function App() {
         <source src="/bg_vid.mov" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <AuthProvider>
         <Router>
           <AppLayout />

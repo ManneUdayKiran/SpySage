@@ -6,6 +6,8 @@ const { sendWeeklyDigest } = require("./services/email");
 const { sendAdminNotification } = require("./services/email");
 const { updateAllCompetitorBuzz } = require("./services/scraperRunner");
 const Change = require("./models/Change");
+const User = require("./models/User");
+const Competitor = require("./models/Competitor");
 
 let scraperTask = null;
 let buzzTask = null;
@@ -64,11 +66,27 @@ function startScheduler() {
           "Scheduler: Weekly Digest Started",
           `Weekly digest started at ${new Date().toISOString()}`
         );
+
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        const changes = await Change.find({
-          detectedAt: { $gte: oneWeekAgo },
-        }).populate("competitor");
-        await sendWeeklyDigest(changes);
+
+        // Get all users
+        const users = await User.find({});
+
+        for (const user of users) {
+          // Get changes for this user's competitors
+          const userCompetitors = await Competitor.find({ userId: user._id });
+          const competitorIds = userCompetitors.map((c) => c._id);
+
+          const changes = await Change.find({
+            competitorId: { $in: competitorIds },
+            detectedAt: { $gte: oneWeekAgo },
+          }).populate("competitor");
+
+          if (changes.length > 0) {
+            await sendWeeklyDigest(changes, user.email);
+          }
+        }
+
         await sendAdminNotification(
           "Scheduler: Weekly Digest Completed",
           `Weekly digest completed at ${new Date().toISOString()}`

@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
@@ -7,44 +7,48 @@ const EMAIL_TO = process.env.EMAIL_TO;
 const adminEmail = process.env.ADMIN_EMAIL; // Set this in your .env file
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your email provider
+  service: "gmail", // or your email provider
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-async function sendWeeklyDigest(changes) {
-  if (!EMAIL_TO) {
-    console.error('No EMAIL_TO specified in .env');
+async function sendWeeklyDigest(changes, userEmail) {
+  if (!userEmail) {
+    console.error("No user email provided for weekly digest");
     return;
   }
-  const toList = EMAIL_TO.split(',').map(e => e.trim());
-  const subject = 'Weekly Competitor Change Digest';
-  let text = 'Here are the competitor changes from the past week:\n\n';
+
+  const subject = "Weekly Competitor Change Digest";
+  let text = "Here are the competitor changes from the past week:\n\n";
   if (changes.length === 0) {
-    text += 'No changes detected.';
+    text += "No changes detected.";
   } else {
     changes.forEach((change, idx) => {
-      text += `${idx + 1}. Competitor: ${change.competitor?.name || ''}\n   Summary: ${change.summary}\n   URL: ${change.url}\n   Detected: ${change.detectedAt ? new Date(change.detectedAt).toLocaleString() : ''}\n\n`;
+      text += `${idx + 1}. Competitor: ${
+        change.competitor?.name || ""
+      }\n   Summary: ${change.summary}\n   URL: ${change.url}\n   Detected: ${
+        change.detectedAt ? new Date(change.detectedAt).toLocaleString() : ""
+      }\n\n`;
     });
   }
   try {
     await transporter.sendMail({
       from: EMAIL_FROM,
-      to: toList,
+      to: userEmail,
       subject,
       text,
     });
-    console.log('Weekly digest email sent');
+    console.log(`Weekly digest email sent to ${userEmail}`);
   } catch (err) {
-    console.error('Email sending error:', err.message);
+    console.error("Email sending error:", err.message);
   }
 }
 
 async function sendAdminNotification(subject, text) {
   if (!adminEmail) {
-    console.error('ADMIN_EMAIL not set in environment.');
+    console.error("ADMIN_EMAIL not set in environment.");
     return;
   }
   try {
@@ -54,10 +58,10 @@ async function sendAdminNotification(subject, text) {
       subject,
       text,
     });
-    console.log('Admin notification sent:', subject);
+    console.log("Admin notification sent:", subject);
   } catch (err) {
-    console.error('Failed to send admin notification:', err);
+    console.error("Failed to send admin notification:", err);
   }
 }
 
-module.exports = { sendWeeklyDigest, sendAdminNotification }; 
+module.exports = { sendWeeklyDigest, sendAdminNotification };
